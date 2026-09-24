@@ -7,319 +7,486 @@
   <title>e-Arsip Kelurahan Tambakbayan</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/10kWBpO_TnKhRgBvd75meKdCtPBCbM_9z">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Archivo+Black&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
-    :root { 
-      --hijau-dasar: #0c4d44; 
-      --hijau-tua: #2e7d32; 
-      --emas-menarik: #ffc107;
-      --pattern-batik: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%230c4d44'/%3E%3Cg transform='translate(40,40)'%3E%3Cellipse rx='5' ry='12' fill='none' stroke='%231a7a6e' stroke-width='1' transform='rotate(0)'/%3E%3Cellipse rx='5' ry='12' fill='none' stroke='%231a7a6e' stroke-width='1' transform='rotate(45)'/%3E%3Cellipse rx='5' ry='12' fill='none' stroke='%231a7a6e' stroke-width='1' transform='rotate(90)'/%3E%3Cellipse rx='5' ry='12' fill='none' stroke='%231a7a6e' stroke-width='1' transform='rotate(135)'/%3E%3Ccircle r='4' fill='%231a7a6e'/%3E%3Ccircle r='2' fill='%230c4d44'/%3E%3C/g%3E%3C/svg%3E");
+    :root {
+      --paper:      #F4F1EA;
+      --ink:        #10150F;
+      --green-deep: #0C4D44;
+      --green-mid:  #2E7D32;
+      --green-soft: #DCE9DA;
+      --gold:       #C9A227;
+      --gold-soft:  #F2E6BC;
+      --cream:      #FFFFFF;
+      --border-w:   3px;
+      --shadow:     6px;
     }
     * { box-sizing: border-box; }
 
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Archivo', 'Poppins', system-ui, sans-serif;
       margin: 0; padding: 0; min-height: 100vh;
-      background-color: var(--hijau-dasar);
-      background-image: var(--pattern-batik);
-      background-size: 80px 80px;
-      background-attachment: fixed;
+      background-color: var(--paper);
+      background-image: linear-gradient(var(--ink) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-position: -1px -1px;
+      color: var(--ink);
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 0%, transparent 30%, var(--paper) 92%);
     }
 
     @keyframes popIn {
-      0%   { transform: scale(0.7); opacity: 0; }
-      100% { transform: scale(1);   opacity: 1; }
+      0%   { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1);    opacity: 1; }
     }
-    @keyframes spin {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* LOADING */
+    /* ── LOADING ── */
     #loading-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(12,77,68,0.9); z-index: 20000;
-      flex-direction: column; align-items: center; justify-content: center; color: white;
+      display: none; position: fixed; inset: 0; z-index: 20000;
+      background: rgba(12,77,68,0.94);
+      flex-direction: column; align-items: center; justify-content: center;
+      color: white; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+      font-size: 13px;
     }
     .spinner {
-      width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3);
-      border-top: 5px solid var(--emas-menarik); border-radius: 50%;
-      animation: spin 1s linear infinite; margin-bottom: 15px;
+      width: 52px; height: 52px; border: 5px solid rgba(255,255,255,0.25);
+      border-top: 5px solid var(--gold); border-radius: 50%;
+      animation: spin 1s linear infinite; margin-bottom: 16px;
     }
 
-    /* MODAL SUKSES */
-    #modalSukses {
+    /* ── MODAL SUKSES / ERROR (neo-brutalist) ── */
+    #modalSukses, #modalError {
       display: none; position: fixed; z-index: 30000; inset: 0;
-      background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
-      backdrop-filter: blur(4px);
+      background: rgba(16,21,15,0.65);
+      align-items: center; justify-content: center; padding: 20px;
     }
-    .sukses-box {
-      background: white; border-radius: 28px; padding: 40px 30px;
-      text-align: center; max-width: 360px; width: 90%;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.4); animation: popIn 0.3s ease;
+    .sukses-box, .error-box {
+      background: var(--cream); padding: 34px 28px;
+      text-align: center; max-width: 380px; width: 100%;
+      border: var(--border-w) solid var(--ink);
+      animation: popIn 0.25s ease;
     }
-    .sukses-icon {
-      width: 75px; height: 75px; background: var(--hijau-tua); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(46,125,50,0.4);
-    }
-    .sukses-icon i { color: white; font-size: 34px; }
-    .sukses-judul { margin: 0 0 10px; color: #1b5e20; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
-    .sukses-pesan { color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 28px; }
-    .sukses-btn {
-      background: var(--hijau-tua); color: white; border: none;
-      padding: 13px 50px; border-radius: 25px; font-weight: 600;
-      cursor: pointer; font-size: 14px; font-family: 'Poppins';
-      box-shadow: 0 5px 0 #1b5e20; transition: 0.15s;
-    }
-    .sukses-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1b5e20; }
+    .sukses-box { box-shadow: 10px 10px 0 var(--green-deep); }
+    .error-box  { box-shadow: 10px 10px 0 #B91C1C; }
 
-    /* MODAL ERROR */
-    #modalError {
-      display: none; position: fixed; z-index: 30000; inset: 0;
-      background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-    .error-box {
-      background: white; border-radius: 28px; padding: 40px 30px;
-      text-align: center; max-width: 360px; width: 90%;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.4); animation: popIn 0.3s ease;
-    }
-    .error-icon {
-      width: 75px; height: 75px; background: #c62828; border-radius: 50%;
+    .sukses-icon, .error-icon {
+      width: 68px; height: 68px; border: var(--border-w) solid var(--ink);
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(198,40,40,0.4);
+      margin: 0 auto 20px;
     }
-    .error-icon i { color: white; font-size: 34px; }
-    .error-judul { margin: 0 0 10px; color: #c62828; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
-    .error-pesan { color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 28px; }
-    .error-btn {
-      background: #c62828; color: white; border: none;
-      padding: 13px 50px; border-radius: 25px; font-weight: 600;
-      cursor: pointer; font-size: 14px; font-family: 'Poppins';
-      box-shadow: 0 5px 0 #b71c1c; transition: 0.15s;
-    }
-    .error-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b71c1c; }
+    .sukses-icon { background: var(--green-deep); box-shadow: 5px 5px 0 var(--gold); }
+    .error-icon  { background: #B91C1C; box-shadow: 5px 5px 0 var(--ink); }
+    .sukses-icon i, .error-icon i { color: #fff; font-size: 30px; }
 
-    /* MODAL UPLOAD */
+    .sukses-judul, .error-judul {
+      margin: 0 0 10px; font-size: 19px; font-weight: 900;
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+    .sukses-judul { color: var(--green-deep); }
+    .error-judul  { color: #B91C1C; }
+    .sukses-pesan, .error-pesan {
+      color: #444; font-size: 13.5px; line-height: 1.7; margin: 0 0 26px;
+      font-weight: 600;
+    }
+    .sukses-btn, .error-btn {
+      color: white; border: var(--border-w) solid var(--ink);
+      padding: 13px 46px; font-weight: 900; cursor: pointer;
+      font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+      font-family: inherit;
+    }
+    .sukses-btn { background: var(--green-deep); box-shadow: 5px 5px 0 var(--gold); }
+    .error-btn  { background: #B91C1C;         box-shadow: 5px 5px 0 var(--ink); }
+
+    /* ── MODAL UPLOAD ── */
     .modal {
       display: none; position: fixed; z-index: 11000; inset: 0;
-      background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
-      backdrop-filter: blur(5px);
+      background: rgba(16,21,15,0.65);
+      align-items: center; justify-content: center; padding: 18px;
     }
     .modal-content {
-      background: #fefefe; padding: 30px; border-radius: 30px;
-      width: 90%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      background: var(--cream); padding: 26px;
+      width: 100%; max-width: 520px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--green-deep);
       max-height: 90vh; overflow-y: auto;
     }
     .modal-header {
-      border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;
-      font-weight: 600; color: var(--hijau-dasar); text-transform: uppercase;
+      border-bottom: var(--border-w) solid var(--ink); padding-bottom: 14px;
+      margin-bottom: 20px; font-weight: 900; color: var(--green-deep);
+      text-transform: uppercase; letter-spacing: 1.5px; font-size: 15px;
     }
-    .form-group { margin-bottom: 20px; text-align: left; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+    .form-group { margin-bottom: 18px; text-align: left; }
+    .form-group label {
+      display: block; margin-bottom: 8px; font-weight: 900;
+      font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase;
+    }
     .form-group input[type="number"],
     .form-group input[type="file"] {
-      width: 100%; padding: 12px; border-radius: 12px;
-      border: 1.5px solid #ddd; outline: none; font-family: 'Poppins';
+      width: 100%; padding: 12px; border: 2.5px solid var(--ink);
+      outline: none; font-family: inherit; background: #FCFBF8;
     }
-    #previewNama { font-size: 12px; color: #555; margin-top: 8px; text-align: center; word-break: break-all; }
+    #previewNama { font-size: 12px; color: #555; margin-top: 8px; text-align: center; word-break: break-all; font-weight: 700; }
     #previewContainer {
-      display: none; margin-top: 10px; border-radius: 12px;
-      overflow: hidden; overflow-y: auto; border: 1.5px solid #ddd;
-      background: #f9f9f9; max-height: 350px; text-align: center;
+      display: none; margin-top: 10px; overflow: hidden; overflow-y: auto;
+      border: 2.5px solid var(--ink); background: #F9F9F6;
+      max-height: 350px; text-align: center;
     }
     #previewCanvas { width: 100%; display: block; }
     #previewImg { width: 100%; max-height: 350px; object-fit: contain; display: none; }
     #previewLoading { display: none; padding: 20px; font-size: 13px; color: #888; }
 
-    /* LOGIN */
+    /* ── LOGIN ── */
     #login-page {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      width: 100%; height: 100vh; position: fixed; inset: 0; z-index: 9999;
-      background-image: var(--pattern-batik);
+      width: 100%; min-height: 100vh; position: relative; z-index: 1; padding: 90px 20px 40px;
     }
-    .login-container { position: relative; width: 90%; max-width: 380px; }
+    .login-container { position: relative; width: 100%; max-width: 400px; }
     .logo-float-login {
-      position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-      z-index: 10; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+      position: absolute; top: -56px; left: 50%; transform: translateX(-50%);
+      z-index: 10;
+    }
+    .logo-float-login img {
+      height: 100px; background: var(--cream);
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 6px 6px 0 var(--gold); padding: 8px;
     }
     .login-box {
-      background: #fdfdfd; padding: 65px 30px 45px; border-radius: 35px; text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.8);
+      background: var(--cream); padding: 70px 30px 36px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--green-deep);
+      text-align: center;
     }
-    .login-box h2 { font-weight: 600; color: #111; margin-bottom: 30px; font-size: 18px; text-transform: uppercase; }
-    .input-wrapper { position: relative; margin-bottom: 25px; display: flex; align-items: center; }
-    .input-wrapper i.prefix-icon { position: absolute; left: 15px; color: #444; font-size: 16px; }
-    .login-box input { width: 100%; padding: 14px 45px; border-radius: 12px; border: 1.5px solid #eee; outline: none; }
-
-    /* MAIN */
-    #main-content { display: none; width: 100%; padding-top: 80px; flex-direction: column; align-items: center; }
-    .nav-top {
-      position: fixed; top: 0; width: 100%; height: 60px;
-      background: rgba(12,77,68,0.95); display: flex;
-      justify-content: flex-end; align-items: center; padding: 0 25px;
-      z-index: 1000; backdrop-filter: blur(10px);
+    .login-box h2 {
+      font-weight: 900; color: var(--ink); margin: 0 0 26px;
+      font-size: 16px; text-transform: uppercase; letter-spacing: 1.5px;
     }
-    .btn-logout { background: #d32f2f; color: white; border: none; padding: 8px 18px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+    .input-wrapper { position: relative; margin-bottom: 20px; display: flex; align-items: center; }
+    .input-wrapper i.prefix-icon { position: absolute; left: 15px; color: var(--green-deep); font-size: 16px; }
+    .login-box input {
+      width: 100%; padding: 14px 45px; border: 2.5px solid var(--ink);
+      outline: none; font-family: inherit; background: #FCFBF8; font-size: 14px;
+    }
 
-    .container-content { width: 95%; max-width: 1100px; margin: auto; padding: 10px; text-align: center; }
-    .grid-menu { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    /* ── MAIN ── */
+    #main-content {
+      display: none; width: 100%; padding: 28px 20px 40px;
+      flex-direction: column; align-items: center; position: relative; z-index: 1;
+    }
+    .container-content { width: 100%; max-width: 1120px; }
+
+    /* TOP BAR */
+    .top-bar {
+      width: 100%; max-width: 1120px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 22px; gap: 12px; flex-wrap: wrap;
+    }
+    .badge-status {
+      background: var(--green-deep); color: #fff;
+      font-size: 11.5px; font-weight: 800; letter-spacing: 1.6px;
+      text-transform: uppercase; padding: 9px 18px;
+      border: var(--border-w) solid var(--ink); box-shadow: 4px 4px 0 var(--gold);
+      display: inline-flex; align-items: center; gap: 9px;
+    }
+    .badge-status .dot {
+      width: 9px; height: 9px; background: #4ADE80;
+      border-radius: 50%; border: 2px solid var(--ink);
+    }
+    .btn-logout {
+      background: var(--cream); color: var(--ink);
+      font-family: inherit; font-weight: 900; font-size: 12.5px;
+      letter-spacing: 1.4px; text-transform: uppercase; padding: 10px 22px;
+      border: var(--border-w) solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 9px;
+    }
+    .btn-logout i { color: var(--green-deep); }
+    .btn-logout:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+    /* HERO */
+    .hero-card {
+      background: var(--green-deep); border: var(--border-w) solid var(--ink);
+      box-shadow: 9px 9px 0 var(--gold); padding: 30px 34px;
+      margin-bottom: 28px; display: flex; align-items: center; gap: 26px;
+      position: relative;
+    }
+    .hero-card::after {
+      content: ''; position: absolute; inset: 8px;
+      border: 1px solid rgba(201,162,39,0.5); pointer-events: none;
+    }
+    .hero-sticker {
+      position: absolute; top: -13px; right: 26px;
+      background: var(--gold); color: var(--ink);
+      font-weight: 900; font-size: 10.5px; letter-spacing: 1.6px;
+      text-transform: uppercase; padding: 6px 14px;
+      border: var(--border-w) solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+      transform: rotate(-1.5deg);
+    }
+    .logo-frame {
+      width: 92px; height: 92px; background: var(--cream);
+      border: var(--border-w) solid var(--ink); box-shadow: 5px 5px 0 var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      padding: 9px; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .logo-frame img { width: 100%; height: 100%; object-fit: contain; }
+    .hero-text { position: relative; z-index: 1; }
+    .hero-text h1 {
+      font-family: 'Archivo Black', 'Archivo', sans-serif;
+      font-size: 36px; font-weight: 900; line-height: 1.08;
+      letter-spacing: -0.8px; text-transform: uppercase;
+      color: var(--cream); margin: 0 0 7px;
+    }
+    .hero-text h1 span { color: var(--gold); }
+    .hero-text p {
+      font-size: 14.5px; font-weight: 800; letter-spacing: 1.2px;
+      text-transform: uppercase; color: #B9D6CE; margin: 0;
+    }
+    .hero-text .chips { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .chip {
+      background: rgba(255,255,255,0.10); border: 2px solid var(--gold);
+      color: var(--gold); padding: 4px 11px; font-size: 10.5px;
+      font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-weight: 900; font-size: 12px; letter-spacing: 2.2px;
+      text-transform: uppercase; display: inline-block;
+      background: var(--ink); color: var(--cream);
+      padding: 5px 14px; border: 2px solid var(--ink); margin-bottom: 13px;
+    }
+
+    /* GRID MENU ARSIP */
+    .grid-menu {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 15px; margin-bottom: 24px;
+    }
     .btn-kat {
-      background: #fff; color: var(--hijau-tua); border: none; padding: 18px 5px; border-radius: 18px;
-      cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 11px;
-      box-shadow: 0 7px 0 #e0e0e0, 0 10px 20px rgba(0,0,0,0.15); transition: 0.2s;
+      background: var(--cream); border: var(--border-w) solid var(--ink);
+      border-top: 7px solid var(--green-deep);
+      box-shadow: var(--shadow) var(--shadow) 0 var(--ink);
+      padding: 22px 12px; cursor: pointer; font-family: inherit;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; text-align: center;
+      transition: transform .12s, box-shadow .12s, background .12s;
     }
-    .btn-kat.active { background: var(--hijau-tua); color: white; box-shadow: 0 7px 0 #1b5e20; }
+    .btn-kat:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--ink);
+      background: #FAFAF8;
+    }
+    .btn-kat:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0 var(--ink); }
+    .btn-kat .icon-box {
+      width: 46px; height: 46px; background: var(--green-soft);
+      border: 2.5px solid var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; color: var(--green-deep);
+    }
+    .btn-kat .kat-label {
+      font-size: 11.5px; font-weight: 900; letter-spacing: 0.4px;
+      text-transform: uppercase; line-height: 1.32; color: var(--ink);
+    }
+    .btn-kat.active {
+      background: var(--green-deep); border-top-color: var(--gold);
+    }
+    .btn-kat.active .kat-label { color: var(--cream); }
+    .btn-kat.active .icon-box { background: var(--gold); color: var(--ink); }
 
-    /* TOMBOL PENGUMUMAN */
+    /* BANNER PENGUMUMAN */
     .btn-pengumuman {
-      width: 100%; background: #fff; color: #e65100; border: none;
-      padding: 16px 5px; border-radius: 18px; cursor: pointer;
-      font-weight: 700; text-transform: uppercase; font-size: 12px;
-      box-shadow: 0 7px 0 #ffe0b2, 0 10px 20px rgba(0,0,0,0.15);
-      transition: 0.2s; margin-bottom: 30px; letter-spacing: 1px;
+      width: 100%; background: var(--gold-soft);
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 8px 8px 0 var(--ink);
+      padding: 19px 26px; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; margin-bottom: 30px; text-align: left;
     }
-    .btn-pengumuman.active { background: #e65100; color: white; box-shadow: 0 7px 0 #bf360c; }
-    .btn-pengumuman i { margin-right: 8px; }
+    .btn-pengumuman:active { transform: translate(3px, 3px); box-shadow: 4px 4px 0 var(--ink); }
+    .banner-left { display: flex; align-items: center; gap: 16px; }
+    .mega-icon {
+      width: 52px; height: 52px; background: var(--gold);
+      border: var(--border-w) solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: var(--ink); flex-shrink: 0;
+    }
+    .banner-text { display: block; }
+    .banner-title {
+      display: block; font-family: 'Archivo Black', 'Archivo', sans-serif;
+      font-size: 20px; font-weight: 900; letter-spacing: -0.3px;
+      text-transform: uppercase; color: var(--ink); margin-bottom: 3px;
+    }
+    .banner-sub {
+      display: block; font-size: 11.5px; font-weight: 800;
+      color: #5C4E1A; text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .banner-arrow {
+      background: var(--green-deep); color: var(--cream);
+      border: var(--border-w) solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+      padding: 11px 18px; font-size: 12px; font-weight: 900;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 9px; white-space: nowrap;
+    }
+    .btn-pengumuman.active { background: var(--gold); }
+    .btn-pengumuman.active .banner-arrow { background: var(--ink); color: var(--gold); }
 
     /* GALERI PENGUMUMAN */
     #boxPengumuman {
-      display: none; width: 100%; background: white; border-radius: 25px;
-      overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-      margin-bottom: 50px;
+      display: none; width: 100%; max-width: 1120px; margin: 0 auto 30px;
+      background: var(--cream); border: var(--border-w) solid var(--ink);
+      box-shadow: 9px 9px 0 var(--green-deep); overflow: hidden;
     }
     .pengumuman-header {
-      background: #e65100; color: white; padding: 15px 25px;
-      font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      background: var(--gold); color: var(--ink); padding: 15px 25px;
+      font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;
       display: flex; justify-content: space-between; align-items: center;
+      border-bottom: var(--border-w) solid var(--ink); gap: 10px; flex-wrap: wrap;
     }
     .galeri-grid {
       display: grid; grid-template-columns: repeat(3, 1fr);
       gap: 20px; padding: 25px;
     }
     .galeri-kartu {
-      border-radius: 16px; overflow: hidden; border: 1.5px solid #eee;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.2s;
-      display: flex; flex-direction: column;
+      border: 2.5px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
+      display: flex; flex-direction: column; background: var(--cream);
     }
-    .galeri-kartu:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.18); }
-    .galeri-preview {
-      width: 100%; height: 180px; object-fit: cover;
-      background: #f5f5f5; display: block;
-    }
+    .galeri-preview { width: 100%; height: 180px; object-fit: cover; background: #F5F5F2; display: block; }
     .galeri-preview-pdf {
-      width: 100%; height: 180px; background: #fff3e0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; color: #e65100;
+      width: 100%; height: 180px; background: var(--gold-soft);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: var(--green-deep);
     }
-    .galeri-preview-pdf i { font-size: 48px; margin-bottom: 8px; }
-    .galeri-preview-pdf span { font-size: 12px; color: #888; }
-    .galeri-info {
-      padding: 14px; flex: 1; display: flex; flex-direction: column;
-    }
-    .galeri-judul {
-      font-weight: 600; font-size: 13px; color: #222;
-      margin: 0 0 6px; line-height: 1.4;
-    }
-    .galeri-tanggal {
-      font-size: 11px; color: #999; margin: 0 0 12px;
-    }
+    .galeri-preview-pdf i { font-size: 46px; margin-bottom: 8px; }
+    .galeri-preview-pdf span { font-size: 12px; color: #666; font-weight: 700; }
+    .galeri-info { padding: 14px; flex: 1; display: flex; flex-direction: column; }
+    .galeri-judul { font-weight: 900; font-size: 13px; color: var(--ink); margin: 0 0 6px; line-height: 1.4; }
+    .galeri-tanggal { font-size: 11px; color: #888; margin: 0 0 12px; font-weight: 700; }
     .galeri-btn {
       margin-top: auto; display: block; text-align: center;
-      background: #e65100; color: white; padding: 9px 0;
-      border-radius: 10px; text-decoration: none; font-size: 12px;
-      font-weight: 600; transition: 0.15s;
+      background: var(--green-deep); color: var(--cream); padding: 10px 0;
+      text-decoration: none; font-size: 11.5px; font-weight: 900;
+      letter-spacing: 1px; text-transform: uppercase;
+      border: 2.5px solid var(--ink);
     }
-    .galeri-btn:hover { background: #bf360c; }
-    .galeri-kosong {
-      padding: 40px; text-align: center; color: #aaa; font-size: 14px;
-    }
-
-    /* RESPONSIVE MOBILE */
-    @media (max-width: 768px) {
-      .grid-menu { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .btn-kat { padding: 16px 8px; font-size: 10px; }
-      .tabel-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .tabel-header div { display: flex; flex-wrap: wrap; gap: 6px; }
-      .btn-action { padding: 8px 12px; font-size: 11px; }
-      .btn-white { margin-right: 0; }
-      .btn-blue  { margin-right: 0; }
-      .btn-green { margin-right: 0; }
-      .container-content { padding: 5px; }
-      .galeri-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 15px; }
-    }
-    @media (max-width: 420px) {
-      .grid-menu { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .btn-kat { padding: 14px 6px; font-size: 9.5px; }
-      .galeri-grid { grid-template-columns: 1fr; }
-    }
+    .galeri-btn:hover { background: var(--gold); color: var(--ink); }
+    .galeri-kosong { padding: 45px 20px; text-align: center; color: #999; font-size: 14px; font-weight: 700; }
 
     /* TABEL BOX */
     .tabel-box {
-      width: 100%; background: white; border-radius: 25px; overflow: hidden;
-      display: none; box-shadow: 0 30px 60px rgba(0,0,0,0.4); margin-bottom: 50px;
+      width: 100%; max-width: 1120px; margin: 0 auto 40px;
+      background: var(--cream); border: var(--border-w) solid var(--ink);
+      box-shadow: 9px 9px 0 var(--green-deep); display: none; overflow: hidden;
     }
     .tabel-header {
-      background: var(--hijau-tua); color: white; padding: 15px 25px;
+      background: var(--green-deep); color: var(--cream); padding: 16px 22px;
       display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 10px;
+      flex-wrap: wrap; gap: 10px; border-bottom: var(--border-w) solid var(--ink);
     }
+    /* Nama kategori di judul toolbar diberi warna emas agar menonjol */
+    #judulTabel .kat-nama { color: var(--gold); }
 
     /* SEARCH BAR */
     .search-bar-wrap {
-      display: none; padding: 14px 20px; background: #f0f7f0;
-      border-bottom: 1px solid #ddd; align-items: center; gap: 10px;
+      display: none; padding: 14px 20px; background: #F7F5EF;
+      border-bottom: 2.5px solid var(--ink); align-items: center; gap: 10px;
     }
     .search-bar-wrap input {
-      flex: 1; padding: 10px 16px; border-radius: 25px; border: 1.5px solid #c8e6c9;
-      outline: none; font-family: 'Poppins'; font-size: 14px;
-      background: white; color: #333;
+      flex: 1; padding: 11px 16px; border: 2.5px solid var(--ink);
+      outline: none; font-family: inherit; font-size: 14px;
+      background: var(--cream); color: var(--ink); font-weight: 600;
     }
-    .search-bar-wrap input:focus { border-color: var(--hijau-tua); }
     .btn-search-clear {
-      background: #e0e0e0; border: none; border-radius: 25px;
-      padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 600;
-      font-family: 'Poppins'; color: #555; white-space: nowrap;
+      background: var(--cream); border: 2.5px solid var(--ink);
+      padding: 10px 18px; cursor: pointer; font-size: 12px; font-weight: 900;
+      font-family: inherit; color: var(--ink); white-space: nowrap;
+      text-transform: uppercase; letter-spacing: 1px;
+      box-shadow: 3px 3px 0 var(--ink);
     }
-    .btn-search-clear:hover { background: #bdbdbd; }
 
     /* HASIL PENCARIAN */
     #hasilPencarian { display: none; width: 100%; overflow-x: auto; }
     #hasilPencarian table { width: 100%; border-collapse: collapse; font-size: 13px; }
     #hasilPencarian th {
-      background: #e8f5e9; color: var(--hijau-dasar);
-      padding: 10px 12px; text-align: center;
-      border: 1px solid #c8e6c9; font-weight: 600; white-space: nowrap;
+      background: var(--green-soft); color: var(--green-deep);
+      padding: 11px 12px; text-align: center; border: 2px solid var(--ink);
+      font-weight: 900; white-space: nowrap; text-transform: uppercase;
+      font-size: 11px; letter-spacing: 0.8px;
     }
     #hasilPencarian td {
-      padding: 9px 12px; border: 1px solid #eee;
+      padding: 9px 12px; border: 1.5px solid #DDD;
       vertical-align: middle; text-align: center;
     }
-    #hasilPencarian tr:nth-child(even) { background: #f9fbe7; }
-    #hasilPencarian tr:hover { background: #e8f5e9; }
-    #hasilPencarian a { color: #1a73e8; text-decoration: none; font-weight: 600; }
+    #hasilPencarian tr:nth-child(even) { background: #FAF8F2; }
+    #hasilPencarian tr:hover { background: var(--gold-soft); }
+    #hasilPencarian a { color: var(--green-deep); text-decoration: none; font-weight: 900; }
     #hasilPencarian a:hover { text-decoration: underline; }
-    .highlight { background: #fff176; border-radius: 3px; padding: 0 2px; }
-    #pesanCari { padding: 30px; text-align: center; color: #888; font-size: 14px; display: none; }
+    .highlight { background: var(--gold); padding: 0 2px; }
+    #pesanCari { padding: 30px; text-align: center; color: #888; font-size: 14px; display: none; font-weight: 700; }
 
     iframe#iframeArsip {
-      width: 100%; height: calc(100vh - 120px);
+      width: 100%; height: calc(100vh - 140px);
       min-height: 600px; border: none; display: block;
     }
 
-    .btn-action { padding: 9px 20px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; }
-    .btn-gold  { background: var(--emas-menarik); color: #222; }
-    .btn-white { background: white; color: var(--hijau-tua); margin-right: 8px; }
-    .btn-blue  { background: #1a73e8; color: white; margin-right: 8px; }
-    .btn-green { background: #43a047; color: white; margin-right: 8px; }
-    .btn-save-modal {
-      width: 100%; padding: 14px; background: var(--hijau-tua); color: white;
-      border: none; border-radius: 12px; cursor: pointer;
-      font-weight: 600; text-transform: uppercase; margin-top: 10px; font-family: 'Poppins';
+    /* TOMBOL AKSI */
+    .btn-action {
+      padding: 9px 18px; border: 2.5px solid var(--ink); cursor: pointer;
+      font-weight: 900; font-size: 11.5px; font-family: inherit;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      box-shadow: 3px 3px 0 var(--ink);
     }
-  </style>
+    .btn-action:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+    .btn-gold  { background: var(--gold);       color: var(--ink); }
+    .btn-white { background: var(--cream);      color: var(--green-deep); margin-right: 8px; }
+    .btn-blue  { background: #1D4ED8;           color: #fff; margin-right: 8px; }
+    .btn-green { background: var(--green-mid);  color: #fff; margin-right: 8px; }
+
+    .btn-save-modal {
+      width: 100%; padding: 15px; background: var(--green-deep); color: var(--cream);
+      border: var(--border-w) solid var(--ink); cursor: pointer;
+      font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;
+      margin-top: 10px; font-family: inherit; font-size: 13px;
+      box-shadow: 5px 5px 0 var(--gold);
+    }
+    .btn-save-modal:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--gold); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1000px) {
+      .grid-menu { grid-template-columns: repeat(3, 1fr); gap: 13px; }
+      .hero-text h1 { font-size: 30px; }
+    }
+    @media (max-width: 720px) {
+      #main-content { padding: 20px 12px 34px; }
+      .hero-card { flex-direction: column; align-items: flex-start; gap: 18px; padding: 26px 20px; }
+      .hero-sticker { right: 14px; font-size: 9.5px; }
+      .hero-text h1 { font-size: 25px; }
+      .hero-text p { font-size: 12px; }
+      .grid-menu { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .btn-kat { padding: 18px 10px; gap: 10px; }
+      .btn-kat .kat-label { font-size: 11px; }
+      .btn-pengumuman { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; }
+      .banner-title { font-size: 16px; }
+      .banner-sub { font-size: 10.5px; }
+      .banner-arrow { align-self: stretch; justify-content: center; }
+      .galeri-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 15px; }
+      .tabel-header { flex-direction: column; align-items: flex-start; }
+      .tabel-header > div { display: flex; flex-wrap: wrap; gap: 6px; }
+      .btn-action { margin-right: 0 !important; }
+      .top-bar { justify-content: center; }
+    }
+    @media (max-width: 440px) {
+      .grid-menu { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .btn-kat { padding: 15px 8px; }
+      .btn-kat .icon-box { width: 40px; height: 40px; font-size: 17px; }
+      .btn-kat .kat-label { font-size: 10px; }
+      .galeri-grid { grid-template-columns: 1fr; }
+      .hero-text h1 { font-size: 22px; }
+      .badge-status { font-size: 10px; padding: 7px 12px; }
+    }
+</style>
 </head>
 <body>
 
@@ -398,96 +565,147 @@
 
 <!-- KONTEN UTAMA -->
 <div id="main-content">
-  <div class="nav-top">
-    <button class="btn-logout" onclick="doLogout()">LOGOUT</button>
-  </div>
 
-  <div class="container-content">
-    <div style="position:relative; margin-bottom:50px; margin-top:40px;">
-      <div style="position:absolute; top:-45px; left:50%; transform:translateX(-50%); z-index:10; filter:drop-shadow(0 8px 12px rgba(0,0,0,0.3));">
-        <img src="https://lh3.googleusercontent.com/d/1zBlSgbYCgGjbjPhcdg9k60yVZroqG38j" height="95">
-      </div>
-      <div style="background:rgba(255,255,255,0.98); padding:50px 30px 30px; border-radius:30px; box-shadow:0 15px 35px rgba(0,0,0,0.3);">
-        <h2 style="margin:10px 0 5px; text-transform:uppercase; font-size:22px;">e-Arsip Kelurahan Tambakbayan</h2>
-        <p style="color:#555; font-size:14px;">Kecamatan Ponorogo Kabupaten Ponorogo</p>
-      </div>
+  <div class="top-bar">
+    <div class="badge-status">
+      <span class="dot"></span>
+      <span>Sistem Online &bull; Kel. Tambakbayan</span>
     </div>
-
-    <!-- GRID MENU ARSIP -->
-    <div class="grid-menu">
-      <button class="btn-kat" onclick="pilihKategori('masuk', this)">Surat Masuk</button>
-      <button class="btn-kat" onclick="pilihKategori('keluar', this)">Surat Keluar</button>
-      <button class="btn-kat" onclick="pilihKategori('keterangan', this)">Surat Keterangan</button>
-      <button class="btn-kat" onclick="pilihKategori('kelahiran', this)">Reg. Kelahiran</button>
-      <button class="btn-kat" onclick="pilihKategori('kematian', this)">Reg. Kematian</button>
-      <button class="btn-kat" onclick="pilihKategori('datang', this)">Pindah Datang</button>
-      <button class="btn-kat" onclick="pilihKategori('pergi', this)">Pindah Pergi</button>
-      <button class="btn-kat" onclick="pilihKategori('lurah', this)">Mengetahui Lurah</button>
-      <button class="btn-kat" onclick="pilihKategori('waris', this)">Ahli Waris</button>
-      <button class="btn-kat" onclick="pilihKategori('izin', this)">Izin Pegawai</button>
-    </div>
-
-    <!-- TOMBOL PENGUMUMAN -->
-    <button class="btn-pengumuman" id="btnPengumuman" onclick="pilihPengumuman(this)"
-      title="Lihat pengumuman dan informasi terbaru kelurahan">
-      <i class="fa-solid fa-bullhorn"></i> PENGUMUMAN &amp; INFORMASI
+    <button class="btn-logout" onclick="doLogout()">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
     </button>
   </div>
 
-  <!-- GALERI PENGUMUMAN -->
-  <div style="width:100%; padding: 0 20px;">
-    <div id="boxPengumuman">
-      <div class="pengumuman-header">
-        <span><i class="fa-solid fa-bullhorn" style="margin-right:8px;"></i>PENGUMUMAN &amp; INFORMASI</span>
-        <button class="btn-action" style="background:white;color:#e65100;font-size:12px;"
-          onclick="muatPengumuman()" title="Muat ulang pengumuman">
-          <i class="fa-solid fa-rotate"></i> REFRESH
-        </button>
+  <div class="container-content">
+
+    <!-- HERO -->
+    <div class="hero-card">
+      <div class="hero-sticker">E-Arsip Digital</div>
+      <div class="logo-frame">
+        <img src="https://lh3.googleusercontent.com/d/1zBlSgbYCgGjbjPhcdg9k60yVZroqG38j" alt="Logo Kabupaten Ponorogo">
       </div>
-      <div id="galeriKonten" class="galeri-grid"></div>
+      <div class="hero-text">
+        <h1>E-Arsip <span>Tambakbayan</span></h1>
+        <p>Kecamatan Ponorogo &bull; Kabupaten Ponorogo</p>
+        <div class="chips">
+          <span class="chip">10 Kategori Arsip</span>
+          <span class="chip">Terhubung Google Sheets</span>
+        </div>
+      </div>
     </div>
+
+    <div><span class="section-label">Pilih Agenda Arsip</span></div>
+
+    <!-- GRID MENU ARSIP -->
+    <div class="grid-menu">
+      <button class="btn-kat" onclick="pilihKategori('masuk', this)">
+        <span class="icon-box"><i class="fa-solid fa-inbox"></i></span>
+        <span class="kat-label">Surat Masuk</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('keluar', this)">
+        <span class="icon-box"><i class="fa-solid fa-paper-plane"></i></span>
+        <span class="kat-label">Surat Keluar</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('keterangan', this)">
+        <span class="icon-box"><i class="fa-solid fa-file-lines"></i></span>
+        <span class="kat-label">Surat Keterangan</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('kelahiran', this)">
+        <span class="icon-box"><i class="fa-solid fa-baby"></i></span>
+        <span class="kat-label">Reg. Kelahiran</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('kematian', this)">
+        <span class="icon-box"><i class="fa-solid fa-book-skull"></i></span>
+        <span class="kat-label">Reg. Kematian</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('datang', this)">
+        <span class="icon-box"><i class="fa-solid fa-person-walking-arrow-right"></i></span>
+        <span class="kat-label">Pindah Datang</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('pergi', this)">
+        <span class="icon-box"><i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i></span>
+        <span class="kat-label">Pindah Pergi</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('lurah', this)">
+        <span class="icon-box"><i class="fa-solid fa-signature"></i></span>
+        <span class="kat-label">Mengetahui Lurah</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('waris', this)">
+        <span class="icon-box"><i class="fa-solid fa-users-rectangle"></i></span>
+        <span class="kat-label">Ahli Waris</span>
+      </button>
+      <button class="btn-kat" onclick="pilihKategori('izin', this)">
+        <span class="icon-box"><i class="fa-solid fa-id-card-clip"></i></span>
+        <span class="kat-label">Izin Pegawai</span>
+      </button>
+    </div>
+
+    <!-- BANNER PENGUMUMAN -->
+    <button class="btn-pengumuman" id="btnPengumuman" onclick="pilihPengumuman(this)"
+      title="Lihat pengumuman dan informasi terbaru kelurahan">
+      <span class="banner-left">
+        <span class="mega-icon"><i class="fa-solid fa-bullhorn"></i></span>
+        <span class="banner-text">
+          <span class="banner-title">Pengumuman &amp; Informasi</span>
+          <span class="banner-sub">Papan pengumuman digital kelurahan &bull; Diperbarui langsung dari Drive</span>
+        </span>
+      </span>
+      <span class="banner-arrow">Buka Papan <i class="fa-solid fa-arrow-right"></i></span>
+    </button>
+
+  </div>
+
+  <!-- GALERI PENGUMUMAN -->
+  <div id="boxPengumuman">
+    <div class="pengumuman-header">
+      <span><i class="fa-solid fa-bullhorn" style="margin-right:8px;"></i>PENGUMUMAN &amp; INFORMASI</span>
+      <button class="btn-action btn-gold" style="font-size:11px;"
+        onclick="muatPengumuman()" title="Muat ulang pengumuman">
+        <i class="fa-solid fa-rotate"></i> REFRESH
+      </button>
+    </div>
+    <div id="galeriKonten" class="galeri-grid"></div>
   </div>
 
   <!-- TABEL BOX ARSIP -->
-  <div style="width:100%; padding: 0 20px;">
-    <div id="boxTabel" class="tabel-box">
-      <div class="tabel-header">
-        <span id="judulTabel" style="font-weight:600; letter-spacing:1px; text-transform:uppercase;">DATABASE</span>
-        <div>
-          <button class="btn-action btn-blue" onclick="bukaEditor()"
-            title="Buka spreadsheet di tab baru untuk mengedit data">
-            <i class="fa-solid fa-pen-to-square"></i> EDIT
-          </button>
-          <button class="btn-action btn-white" onclick="openModal()"
-            title="Unggah file PDF/gambar arsip ke Drive dan spreadsheet">
-            <i class="fa-solid fa-upload"></i> UNGGAH BERKAS
-          </button>
-          <button class="btn-action btn-green" onclick="jalankanFormat()"
-            title="Terapkan format otomatis: font 12, wrap teks, rata tengah ke seluruh data">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> FORMAT
-          </button>
-          <button class="btn-action btn-gold" onclick="refreshIframe()"
-            title="Muat ulang tampilan spreadsheet">
-            <i class="fa-solid fa-rotate"></i> REFRESH
-          </button>
-        </div>
-      </div>
-
-      <div class="search-bar-wrap" id="searchBarWrap">
-        <i class="fa-solid fa-magnifying-glass" style="color:#888;"></i>
-        <input type="text" id="inputCari"
-          placeholder="Cari nama, nomor, tanggal, keterangan..."
-          oninput="onSearchInput()">
-        <button class="btn-search-clear" onclick="clearSearch()">
-          <i class="fa-solid fa-xmark"></i> Hapus
+  <div id="boxTabel" class="tabel-box">
+    <div class="tabel-header">
+      <span id="judulTabel" style="font-weight:900; letter-spacing:1.5px; text-transform:uppercase;">DATABASE</span>
+      <div>
+        <button class="btn-action btn-blue" onclick="bukaEditor()"
+          title="Buka spreadsheet di tab baru untuk mengedit data">
+          <i class="fa-solid fa-pen-to-square"></i> EDIT
+        </button>
+        <button class="btn-action btn-white" onclick="openModal()"
+          title="Unggah file PDF/gambar arsip ke Drive dan spreadsheet">
+          <i class="fa-solid fa-upload"></i> UNGGAH BERKAS
+        </button>
+        <button class="btn-action btn-green" onclick="jalankanFormat()"
+          title="Terapkan format otomatis: font 12, wrap teks, rata tengah ke seluruh data">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> FORMAT
+        </button>
+        <button class="btn-action btn-gold" onclick="refreshIframe()"
+          title="Muat ulang tampilan spreadsheet">
+          <i class="fa-solid fa-rotate"></i> REFRESH
         </button>
       </div>
-
-      <p id="pesanCari"></p>
-      <div id="hasilPencarian"></div>
-      <iframe id="iframeArsip" src=""></iframe>
     </div>
+
+    <div class="search-bar-wrap" id="searchBarWrap">
+      <i class="fa-solid fa-magnifying-glass" style="color:#888;"></i>
+      <input type="text" id="inputCari"
+        placeholder="Cari nama, nomor, tanggal, keterangan..."
+        oninput="onSearchInput()">
+      <button class="btn-search-clear" onclick="clearSearch()">
+        <i class="fa-solid fa-xmark"></i> Hapus
+      </button>
+    </div>
+
+    <p id="pesanCari"></p>
+    <div id="hasilPencarian"></div>
+    <iframe id="iframeArsip" src=""></iframe>
   </div>
+
 </div>
 
 <script>
@@ -634,7 +852,11 @@
     el.classList.add('active');
     document.getElementById('boxTabel').style.display = 'block';
     document.getElementById('iframeArsip').src = iframeLinks[kat];
-    document.getElementById('judulTabel').innerText = "DATABASE: " + el.innerText.toUpperCase();
+    // Ambil nama kategori dari label (bukan innerText tombol, agar tidak ikut teks lain)
+    const labelKat = el.querySelector('.kat-label');
+    const namaKat = (labelKat ? labelKat.textContent : el.innerText).trim().toUpperCase();
+    document.getElementById('judulTabel').innerHTML =
+      'DATABASE: <span class="kat-nama">' + namaKat + '</span>';
     document.getElementById('searchBarWrap').style.display = 'flex';
     document.getElementById('inputCari').value = '';
     clearSearch();
