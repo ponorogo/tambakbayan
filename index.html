@@ -713,6 +713,48 @@
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbzBc0CqpG00DXo9dFBxRxKg32h1VXlyOp5c-bnGWRVV-xkBXGli2zFYf2aYhV_OAdQM5Q/exec";
 
+  // ── PEMBANTU API ──
+  // Apps Script sesekali (≈3%) membalas redirect ke script.googleusercontent.com
+  // yang gagal dengan HTML 404, sehingga JSON.parse meledak ("Unexpected token '<'").
+  // Karena itu: baca sebagai teks, coba parse, dan ulangi beberapa kali bila gagal.
+  const API_MAX_COBA = 4;
+
+  function tidur(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // Balasan redirect kadang terkompresi (gzip) walau Content-Type JSON,
+  // sehingga teksnya berisi byte biner. Deteksi lewat karakter kontrol.
+  function tampakBiner(teks) {
+    for (let i = 0; i < Math.min(teks.length, 200); i++) {
+      const c = teks.charCodeAt(i);
+      if (c < 9 || (c > 13 && c < 32)) return true;
+    }
+    return false;
+  }
+
+  async function ambilJson(url, opsi, label) {
+    let terakhir = null;
+    for (let coba = 1; coba <= API_MAX_COBA; coba++) {
+      try {
+        const resp = await fetch(url, opsi);
+        const teks = await resp.text();
+
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+
+        // Balasan bukan JSON (biasanya halaman HTML error dari Google)
+        if (tampakBiner(teks) || !teks.trim().startsWith("{")) {
+          throw new Error("Balasan bukan JSON (gangguan sementara server)");
+        }
+
+        return JSON.parse(teks);   // bila parse gagal, ditangkap catch di bawah
+      } catch (err) {
+        terakhir = err;
+        if (coba < API_MAX_COBA) await tidur(400 * coba);   // jeda 400, 800, 1200 ms
+      }
+    }
+    throw new Error((label ? label + ": " : "") + (terakhir ? terakhir.message : "gagal") +
+                    " — sudah dicoba " + API_MAX_COBA + "x");
+  }
+
   async function callApiGet(action, params = {}) {
     const url = new URL(API_URL);
     url.searchParams.append("action", action);
@@ -721,20 +763,21 @@
         url.searchParams.append(key, params[key]);
       }
     }
-    const resp = await fetch(url);
-    const json = await resp.json();
+    // _=timestamp mencegah balasan redirect basi tersimpan di cache
+    url.searchParams.append("_", Date.now());
+
+    const json = await ambilJson(url.toString(), undefined, "Gagal memuat data");
     if (!json.success) throw new Error(json.error || "Gagal memproses permintaan");
     return json.data !== undefined ? json.data : json.message || json;
   }
 
   async function callApiPost(action, payload = {}) {
     payload.action = action;
-    const resp = await fetch(API_URL, {
+    const json = await ambilJson(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
-    });
-    const json = await resp.json();
+    }, "Gagal menyimpan data");
     if (!json.success) throw new Error(json.error || "Gagal memproses permintaan");
     return json.message || json;
   }
