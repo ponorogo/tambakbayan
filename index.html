@@ -186,9 +186,14 @@
       z-index: 0; pointer-events: none;
       animation: karakterFloat 4.5s ease-in-out infinite;
     }
-    .karakter-login img {
-      width: 100%; display: block;
+    .karakter-login .lapis-badan { width: 100%; display: block; position: relative; }
+    .lapis-kepala {
+      position: absolute; top: 0; left: 0; width: 100%;
+      aspect-ratio: 1600 / 1038;
+      transform-origin: 50% 93%;
+      will-change: transform;
     }
+    .lapis-kepala img { width: 100%; display: block; }
     @keyframes karakterFloat {
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50%      { transform: translateX(-50%) translateY(-10px); }
@@ -592,9 +597,12 @@
   <div class="login-wrap">
     <!-- Maskot: hanya tampil di halaman login, hilang otomatis setelah masuk -->
     <div class="karakter-login" id="karakterWrap">
-      <img src="karakter.png" alt="Maskot e-Arsip">
-      <span class="pupil" data-x="58.2" data-y="37.5" style="left:58.2%; top:37.5%;"></span>
-      <span class="pupil" data-x="42.3" data-y="37.5" style="left:42.3%; top:37.5%;"></span>
+      <img src="badan.png" alt="" class="lapis-badan">
+      <div class="lapis-kepala" id="kepalaWrap">
+        <img src="kepala.png" alt="Maskot e-Arsip">
+        <span class="pupil" data-x="58.2" data-y="57.8" style="left:58.2%; top:57.8%;"></span>
+        <span class="pupil" data-x="42.3" data-y="57.8" style="left:42.3%; top:57.8%;"></span>
+      </div>
     </div>
   <div class="login-container">
     <div class="logo-float-login">
@@ -935,39 +943,56 @@
     clearSearch();
   }
 
-  // ── MATA MASKOT MENGIKUTI KURSOR ──
-  // Pupil diposisikan di tengah tiap mata (data-x/data-y dalam %),
-  // lalu digeser ke arah kursor dengan batas maksimal.
+  // ── KEPALA + MATA MASKOT MENGIKUTI KURSOR ──
+  // Kepala (lapisan terpisah) menoleh halus ke arah kursor: geser + miring,
+  // dengan lerp agar gerakannya lembut seperti manusia. Pupil tetap
+  // mengikuti posisi kursor persis di dalam lapisan kepala.
   (function() {
     var wrap = document.getElementById('karakterWrap');
-    if (!wrap) return;
-    var pupils = Array.prototype.slice.call(wrap.querySelectorAll('.pupil'));
+    var head = document.getElementById('kepalaWrap');
+    if (!wrap || !head) return;
+    var pupils = Array.prototype.slice.call(head.querySelectorAll('.pupil'));
     var MAX_X = 0.018, MAX_Y = 0.024; // batas gerak pupil (fraksi ukuran gambar)
+    var tX = 0, tY = 0, cX = 0, cY = 0; // target & posisi aktual (-1..1)
 
-    function gerakMata(cx, cy) {
+    function setTarget(kx, ky) {
       var r = wrap.getBoundingClientRect();
       if (!r.width) return;
+      var dx = (kx - (r.left + r.width * 0.5)) / (r.width * 0.5);
+      var dy = (ky - (r.top + r.height * 0.38)) / (r.height * 0.5);
+      tX = Math.max(-1, Math.min(1, dx));
+      tY = Math.max(-1, Math.min(1, dy));
+
+      var hr = head.getBoundingClientRect();
       pupils.forEach(function(p) {
-        var ex = r.left + (parseFloat(p.dataset.x) / 100) * r.width;
-        var ey = r.top  + (parseFloat(p.dataset.y) / 100) * r.height;
-        var dx = cx - ex, dy = cy - ey;
-        var dist = Math.sqrt(dx*dx + dy*dy) || 1;
-        var k = Math.min(1, dist / (r.width * 0.3));
-        var ox = (dx / dist) * MAX_X * r.width * k;
-        var oy = (dy / dist) * MAX_Y * r.height * k;
+        var ex = hr.left + (parseFloat(p.dataset.x) / 100) * hr.width;
+        var ey = hr.top  + (parseFloat(p.dataset.y) / 100) * hr.height;
+        var ddx = kx - ex, ddy = ky - ey;
+        var dist = Math.sqrt(ddx*ddx + ddy*ddy) || 1;
+        var k = Math.min(1, dist / (hr.width * 0.3));
+        var ox = (ddx / dist) * MAX_X * hr.width * k;
+        var oy = (ddy / dist) * MAX_Y * hr.height * k;
         p.style.transform = 'translate(calc(-50% + ' + ox.toFixed(1) + 'px),'
                           + ' calc(-50% + ' + oy.toFixed(1) + 'px))';
       });
     }
-    function resetMata() {
-      pupils.forEach(function(p) { p.style.transform = 'translate(-50%, -50%)'; });
+    function tick() {
+      cX += (tX - cX) * 0.075;
+      cY += (tY - cY) * 0.075;
+      head.style.transform = 'translate(' + (cX * 16).toFixed(1) + 'px, '
+        + (cY * 11).toFixed(1) + 'px) rotate(' + (cX * 7).toFixed(2) + 'deg)';
+      requestAnimationFrame(tick);
     }
-    document.addEventListener('mousemove', function(e) { gerakMata(e.clientX, e.clientY); });
+    document.addEventListener('mousemove', function(e) { setTarget(e.clientX, e.clientY); });
     document.addEventListener('touchmove', function(e) {
-      var t = e.touches[0];
-      if (t) gerakMata(t.clientX, t.clientY);
+      var tt = e.touches[0];
+      if (tt) setTarget(tt.clientX, tt.clientY);
     }, { passive: true });
-    document.addEventListener('mouseleave', resetMata);
+    document.addEventListener('mouseleave', function() {
+      tX = 0; tY = 0;
+      pupils.forEach(function(p) { p.style.transform = 'translate(-50%, -50%)'; });
+    });
+    tick();
   })();
 
   // ── PILIH KATEGORI ARSIP ──
