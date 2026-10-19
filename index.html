@@ -401,9 +401,11 @@
 
     /* TABEL BOX */
     .tabel-box {
-      /* Diperlebar agar iframe Google Sheets memakai ruang layar maksimal.
-         Tetap ada batas atas supaya tidak melebar berlebihan di monitor ultrawide. */
-      width: 100%; max-width: 1800px; margin: 0 auto 40px;
+      /* Diperlebar: keluar dari batas container 1120px agar iframe Google Sheets
+         memakai ruang layar maksimal (selebar 96vw, maks 1800px), tetap di tengah. */
+      width: min(1800px, 96vw);
+      position: relative; left: 50%; transform: translateX(-50%);
+      margin-bottom: 40px;
       background: var(--cream); border: var(--border-w) solid var(--ink);
       box-shadow: 9px 9px 0 var(--green-deep); display: none; overflow: hidden;
     }
