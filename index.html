@@ -401,19 +401,11 @@
 
     /* TABEL BOX */
     .tabel-box {
-      width: 100%; margin: 0 auto 40px;
+      /* Diperlebar agar iframe Google Sheets memakai ruang layar maksimal.
+         Tetap ada batas atas supaya tidak melebar berlebihan di monitor ultrawide. */
+      width: 100%; max-width: 1800px; margin: 0 auto 40px;
       background: var(--cream); border: var(--border-w) solid var(--ink);
       box-shadow: 9px 9px 0 var(--green-deep); display: none; overflow: hidden;
-    }
-    /* Di layar lebar (≥1200px): kotak database keluar dari batas container
-       1120px — selebar 96vw (maks 1800px), tetap di tengah via margin negatif. */
-    @media (min-width: 1200px) {
-      .tabel-box {
-        --lebar-tabel: min(1800px, 96vw);
-        width: var(--lebar-tabel);
-        margin-left: calc((var(--lebar-tabel) - 100%) / -2);
-        margin-right: calc((var(--lebar-tabel) - 100%) / -2);
-      }
     }
     .tabel-header {
       background: var(--green-deep); color: var(--cream); padding: 16px 22px;
@@ -826,16 +818,16 @@
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   const iframeLinks = {
-    'masuk':      'https://docs.google.com/spreadsheets/d/1XumVdKgXG6vcbkh6lS1xpVf1RAjHdhAqeiS2XP8snQE/edit',
-    'keluar':     'https://docs.google.com/spreadsheets/d/1qDe7MKEfDy5PBdcviX_-pj5pxfHNdWD7l9G83S85VAg/edit',
-    'keterangan': 'https://docs.google.com/spreadsheets/d/1RUlp8Ig-kup3yM3USJGc4TvtX5oyK2QyEvd27Zhmke8/edit',
-    'kelahiran':  'https://docs.google.com/spreadsheets/d/12oDLNfgmMezJc2N-pm6deszuZg8L0s6E_OmTlut6E0U/edit',
-    'kematian':   'https://docs.google.com/spreadsheets/d/1i9rALm06BjZpvw2NORXbUdfOxnze2XUa29z_Jpm2_0A/edit',
-    'pergi':      'https://docs.google.com/spreadsheets/d/17pS9NECmG6VRJSGjZObUMaPH5IICXQjDloI8qUp2iHY/edit',
-    'datang':     'https://docs.google.com/spreadsheets/d/1ybtMXzzz21pNyto3QvvhDQqxcoUw5o79BbBQD8gATxE/edit',
-    'lurah':      'https://docs.google.com/spreadsheets/d/1LzMv-n6D1XwFR8LlI7XXA37xWYsvO4BPX-kKnhdcf6I/edit',
-    'waris':      'https://docs.google.com/spreadsheets/d/1Jl4HjR62l07m4FoqEgW5rZwOFmiHHg38EzN0OZbMiq4/edit',
-    'izin':       'https://docs.google.com/spreadsheets/d/1X8oUP0hsrezDT6sy6uXz7lynhrY1fXKNAhKVATBTK4M/edit'
+    'masuk':      'https://docs.google.com/spreadsheets/d/1XumVdKgXG6vcbkh6lS1xpVf1RAjHdhAqeiS2XP8snQE/edit?rm=minimal',
+    'keluar':     'https://docs.google.com/spreadsheets/d/1qDe7MKEfDy5PBdcviX_-pj5pxfHNdWD7l9G83S85VAg/edit?rm=minimal',
+    'keterangan': 'https://docs.google.com/spreadsheets/d/1RUlp8Ig-kup3yM3USJGc4TvtX5oyK2QyEvd27Zhmke8/edit?rm=minimal',
+    'kelahiran':  'https://docs.google.com/spreadsheets/d/12oDLNfgmMezJc2N-pm6deszuZg8L0s6E_OmTlut6E0U/edit?rm=minimal',
+    'kematian':   'https://docs.google.com/spreadsheets/d/1i9rALm06BjZpvw2NORXbUdfOxnze2XUa29z_Jpm2_0A/edit?rm=minimal',
+    'pergi':      'https://docs.google.com/spreadsheets/d/17pS9NECmG6VRJSGjZObUMaPH5IICXQjDloI8qUp2iHY/edit?rm=minimal',
+    'datang':     'https://docs.google.com/spreadsheets/d/1ybtMXzzz21pNyto3QvvhDQqxcoUw5o79BbBQD8gATxE/edit?rm=minimal',
+    'lurah':      'https://docs.google.com/spreadsheets/d/1LzMv-n6D1XwFR8LlI7XXA37xWYsvO4BPX-kKnhdcf6I/edit?rm=minimal',
+    'waris':      'https://docs.google.com/spreadsheets/d/1Jl4HjR62l07m4FoqEgW5rZwOFmiHHg38EzN0OZbMiq4/edit?rm=minimal',
+    'izin':       'https://docs.google.com/spreadsheets/d/1X8oUP0hsrezDT6sy6uXz7lynhrY1fXKNAhKVATBTK4M/edit?rm=minimal'
   };
 
   window.onload = function() {
