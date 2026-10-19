@@ -401,13 +401,19 @@
 
     /* TABEL BOX */
     .tabel-box {
-      /* Diperlebar: keluar dari batas container 1120px agar iframe Google Sheets
-         memakai ruang layar maksimal (selebar 96vw, maks 1800px), tetap di tengah. */
-      width: min(1800px, 96vw);
-      position: relative; left: 50%; transform: translateX(-50%);
-      margin-bottom: 40px;
+      width: 100%; margin: 0 auto 40px;
       background: var(--cream); border: var(--border-w) solid var(--ink);
       box-shadow: 9px 9px 0 var(--green-deep); display: none; overflow: hidden;
+    }
+    /* Di layar lebar (≥1200px): kotak database keluar dari batas container
+       1120px — selebar 96vw (maks 1800px), tetap di tengah via margin negatif. */
+    @media (min-width: 1200px) {
+      .tabel-box {
+        --lebar-tabel: min(1800px, 96vw);
+        width: var(--lebar-tabel);
+        margin-left: calc((var(--lebar-tabel) - 100%) / -2);
+        margin-right: calc((var(--lebar-tabel) - 100%) / -2);
+      }
     }
     .tabel-header {
       background: var(--green-deep); color: var(--cream); padding: 16px 22px;
